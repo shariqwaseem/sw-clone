@@ -277,7 +277,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
             required
           />
         </label>
-        <label className="space-y-1 text-sm">
+        <label className="w-full space-y-1 text-sm">
           <span>Date</span>
           <input
             type="date"
