@@ -43,6 +43,7 @@ export default function GroupDashboard() {
   const [memberEmail, setMemberEmail] = useState('');
   const [status, setStatus] = useState('');
   const [actionMessage, setActionMessage] = useState('');
+  const [copiedCode, setCopiedCode] = useState(false);
   const [showDeleteNameModal, setShowDeleteNameModal] = useState(false);
   const [showDeleteDataModal, setShowDeleteDataModal] = useState(false);
   const [deleteNameInput, setDeleteNameInput] = useState('');
@@ -183,18 +184,6 @@ export default function GroupDashboard() {
                   >
                     Settle up
                   </Link>
-                  {members.find(member => member.uid === user?.uid)?.role === 'admin' && (
-                    <button
-                      onClick={() => {
-                        setDeleteNameInput('');
-                        setShowDeleteNameModal(true);
-                        setShowDeleteDataModal(false);
-                      }}
-                      className="text-sm text-rose-600"
-                    >
-                      Delete group
-                    </button>
-                  )}
                 </div>
               </div>
             </section>
@@ -245,10 +234,14 @@ export default function GroupDashboard() {
                   <p className="text-sm text-slate-500">Share this code to invite people.</p>
                 </div>
                 <button
-                  onClick={() => navigator.clipboard.writeText(group.id)}
-                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700"
+                  onClick={() => {
+                    navigator.clipboard.writeText(group.id);
+                    setCopiedCode(true);
+                    setTimeout(() => setCopiedCode(false), 1500);
+                  }}
+                  className="min-w-[300px] rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 text-center"
                 >
-                  Copy code: {group.id}
+                  {copiedCode ? 'Copied!' : `Copy code: ${group.id}`}
                 </button>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
@@ -377,6 +370,22 @@ export default function GroupDashboard() {
                 </div>
               )}
             </section>
+            {members.find(member => member.uid === user?.uid)?.role === 'admin' && (
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                <p className="font-medium text-slate-900">Danger zone</p>
+                <p className="mt-1 text-xs text-slate-500">Deleting removes all expenses and payments.</p>
+                <button
+                  onClick={() => {
+                    setDeleteNameInput('');
+                    setShowDeleteNameModal(true);
+                    setShowDeleteDataModal(false);
+                  }}
+                  className="mt-3 text-xs font-semibold text-rose-600"
+                >
+                  Delete group permanently
+                </button>
+              </div>
+            )}
           </>
         )}
       </main>
