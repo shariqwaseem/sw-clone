@@ -123,9 +123,7 @@ export default function GroupsPage() {
         <section className="rounded-2xl bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Your groups</h2>
-            <button onClick={handleDemoGroup} className="text-sm font-medium text-brand">
-              Seed demo group
-            </button>
+            <div />
           </div>
           {groupsLoading ? (
             <p className="mt-4 text-slate-500">Loading groups…</p>
