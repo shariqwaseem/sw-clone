@@ -303,7 +303,7 @@ export default function GroupDashboard() {
               {timelineItems.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-500">No activity yet.</p>
               ) : (
-                <div className="mt-4 divide-y divide-slate-100">
+                <div className="mt-4 space-y-4">
                   {timelineItems.map(item => {
                     const dateLabel = new Date(item.entry.date).toLocaleDateString('en-US', {
                       day: '2-digit',
@@ -318,19 +318,22 @@ export default function GroupDashboard() {
                       const userContribution = expense.payers.find((payerLine: { uid: string }) => payerLine.uid === user?.uid)?.amount ?? 0;
                       const delta = roundCurrency(userContribution - userShare);
                       return (
-                        <div key={expense.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                          <div>
+                        <div
+                          key={expense.id}
+                          className="rounded-xl border border-slate-100 p-4 md:flex md:items-center md:justify-between md:gap-6"
+                        >
+                          <div className="md:flex-1">
                             <p className="text-xs uppercase text-slate-400">{dateLabel}</p>
-                            <p className="font-medium">{expense.description}</p>
-                            <p className="text-xs text-slate-500">
+                            <p className="mt-1 text-base font-medium text-slate-900 md:text-lg">{expense.description}</p>
+                            <p className="mt-1 text-sm text-slate-600">
                               {payerNames} paid {formatCurrency(expense.totalAmount)}
                             </p>
                           </div>
-                          <div className="text-right text-sm">
-                            <p className={delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                          <div className="mt-3 text-sm md:mt-0 md:text-right">
+                            <p className={`font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {delta >= 0 ? 'You lent' : 'You borrowed'} {formatCurrency(Math.abs(delta))}
                             </p>
-                            <div className="mt-1 space-x-3 text-xs">
+                            <div className="mt-3 flex gap-4 text-xs md:justify-end">
                               <Link href={`/groups/${group.id}/expenses/${expense.id}/edit`} className="text-brand">
                                 Edit
                               </Link>
@@ -352,17 +355,20 @@ export default function GroupDashboard() {
                     const affectsUser = payment.fromUid === user?.uid || payment.toUid === user?.uid;
                     const delta = payment.fromUid === user?.uid ? payment.amount : payment.toUid === user?.uid ? -payment.amount : 0;
                     return (
-                      <div key={payment.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                        <div>
+                      <div
+                        key={payment.id}
+                        className="rounded-xl border border-slate-100 p-4 md:flex md:items-center md:justify-between md:gap-6"
+                      >
+                        <div className="md:flex-1">
                           <p className="text-xs uppercase text-slate-400">{dateLabel}</p>
-                          <p className="font-medium">Settle up payment</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="mt-1 text-base font-medium text-slate-900 md:text-lg">Settle up payment</p>
+                          <p className="mt-1 text-sm text-slate-600">
                             {fromName} paid {toName} {formatCurrency(payment.amount)}
                           </p>
                         </div>
-                        <div className="text-right text-sm">
+                        <div className="mt-3 text-sm md:mt-0 md:text-right">
                           {affectsUser ? (
-                            <p className={delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                            <p className={`font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {delta >= 0 ? 'You lent' : 'You borrowed'} {formatCurrency(Math.abs(delta))}
                             </p>
                           ) : (
@@ -370,7 +376,7 @@ export default function GroupDashboard() {
                           )}
                           <button
                             onClick={() => setEntryToDelete({ type: 'payment', id: payment.id })}
-                            className="mt-1 text-xs text-rose-600"
+                            className="mt-3 text-xs text-rose-600"
                           >
                             Delete
                           </button>

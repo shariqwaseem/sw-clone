@@ -46,7 +46,9 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
   });
   const [payersTouched, setPayersTouched] = useState(false);
   const [status, setStatus] = useState('');
-  const firstOtherMember = members.find(member => member.uid !== user?.uid);
+  const otherMembers = members.filter(member => member.uid !== user?.uid);
+  const firstOtherMember = otherMembers[0];
+  const showQuickOptions = Boolean(user && firstOtherMember && otherMembers.length === 1);
   const participantIds = selectedMembers.length ? selectedMembers : members.map(m => m.uid);
 
   const currencyFormatter = useMemo(
@@ -121,6 +123,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
   );
 
   const quickOption = useMemo(() => {
+    if (!firstOtherMember || !showQuickOptions) return null;
     const equalAmount = participantIds.length ? roundCurrency(totalAmount / participantIds.length) : 0;
     const isEqualSplit = participantIds.every(uid => Math.abs((computedSplits[uid] ?? 0) - equalAmount) < 0.01);
     const payerEntries = Object.entries(payers).filter(([, amount]) => amount && amount > 0);
@@ -144,15 +147,15 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
       Math.abs((computedSplits[participantIds[0]] ?? 0) - totalAmount) < 0.01
     ) {
       const owedUid = participantIds[0];
-      if (owedUid === user?.uid && payerEntries.length === 1 && payerEntries[0]?.[0] === firstOtherMember?.uid) {
+      if (owedUid === firstOtherMember?.uid && payerEntries.length === 1 && payerEntries[0]?.[0] === user?.uid) {
         return 'you-are-owed';
       }
-      if (owedUid === firstOtherMember?.uid && payerEntries.length === 1 && payerEntries[0]?.[0] === user?.uid) {
+      if (owedUid === user?.uid && payerEntries.length === 1 && payerEntries[0]?.[0] === firstOtherMember?.uid) {
         return 'other-is-owed';
       }
     }
     return null;
-  }, [computedSplits, firstOtherMember?.uid, participantIds, payers, splitMode, totalAmount, user?.uid]);
+  }, [computedSplits, firstOtherMember?.uid, participantIds, payers, showQuickOptions, splitMode, totalAmount, user?.uid]);
 
   const toggleMember = (uid: string) => {
     setSelectedMembers(prev => (prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]));
@@ -289,7 +292,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
       </div>
 
       <div className="rounded-2xl border border-slate-200 p-4">
-        {user && firstOtherMember && (
+        {showQuickOptions && firstOtherMember && (
           <div className="mb-4 rounded-xl border border-slate-100 p-4">
             <p className="text-sm font-medium text-slate-700">Quick options</p>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
@@ -323,9 +326,9 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                 description={`You owe ${currencyFormatter.format(totalAmount)}.`}
                 onClick={() => {
                   setSplitMode('exact');
-                  setSelectedMembers([firstOtherMember.uid]);
-                  setSplitValues({ [firstOtherMember.uid]: totalAmount });
-                  setAutoPayers({ [user.uid]: totalAmount });
+                  setSelectedMembers([user.uid]);
+                  setSplitValues({ [user.uid]: totalAmount });
+                  setAutoPayers({ [firstOtherMember.uid]: totalAmount });
                 }}
               />
               <QuickOptionButton
@@ -334,9 +337,9 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                 description={`${firstOtherMember.displayName} owes you ${currencyFormatter.format(totalAmount)}.`}
                 onClick={() => {
                   setSplitMode('exact');
-                  setSelectedMembers([user.uid]);
-                  setSplitValues({ [user.uid]: totalAmount });
-                  setAutoPayers({ [firstOtherMember.uid]: totalAmount });
+                  setSelectedMembers([firstOtherMember.uid]);
+                  setSplitValues({ [firstOtherMember.uid]: totalAmount });
+                  setAutoPayers({ [user.uid]: totalAmount });
                 }}
               />
             </div>
