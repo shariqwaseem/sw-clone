@@ -183,16 +183,18 @@ export default function GroupDashboard() {
                   >
                     Settle up
                   </Link>
-                  <button
-                    onClick={() => {
-                      setDeleteNameInput('');
-                      setShowDeleteNameModal(true);
-                      setShowDeleteDataModal(false);
-                    }}
-                    className="text-sm text-rose-600"
-                  >
-                    Delete group
-                  </button>
+                  {members.find(member => member.uid === user?.uid)?.role === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setDeleteNameInput('');
+                        setShowDeleteNameModal(true);
+                        setShowDeleteDataModal(false);
+                      }}
+                      className="text-sm text-rose-600"
+                    >
+                      Delete group
+                    </button>
+                  )}
                 </div>
               </div>
             </section>
