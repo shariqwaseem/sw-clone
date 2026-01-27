@@ -239,30 +239,18 @@ export default function GroupDashboard() {
             </section>
 
             <section className="rounded-2xl bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Members</h2>
-                <p className="text-sm text-slate-500">Invite via share code or email below.</p>
-              </div>
-              <form onSubmit={handleAddMember} className="mt-4 flex flex-col gap-4 md:flex-row">
-                <input
-                  value={memberName}
-                  onChange={event => setMemberName(event.target.value)}
-                  placeholder="Name"
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2"
-                />
-                <input
-                  value={memberEmail}
-                  onChange={event => setMemberEmail(event.target.value)}
-                  placeholder="Email (optional)"
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2"
-                />
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Members</h2>
+                  <p className="text-sm text-slate-500">Share this code to invite people.</p>
+                </div>
                 <button
-                  type="submit"
-                  className="rounded-lg border border-slate-200 px-4 py-2 font-medium text-slate-700"
+                  onClick={() => navigator.clipboard.writeText(group.id)}
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700"
                 >
-                  Add member
+                  Copy code: {group.id}
                 </button>
-              </form>
+              </div>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
                 {members.map(member => (
                   <li key={member.uid} className="flex items-center justify-between">
