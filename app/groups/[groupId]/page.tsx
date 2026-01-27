@@ -35,10 +35,10 @@ export default function GroupDashboard() {
 
   const visiblePayments = payments.filter(payment => !payment.isDeleted);
 
-  const timelineItems = [...visibleExpenses.map(expense => ({ type: 'expense' as const, entry: expense })),
-    ...visiblePayments.map(payment => ({ type: 'payment' as const, entry: payment }))].sort(
-    (a, b) => getTimestampValue(b.entry.createdAt) - getTimestampValue(a.entry.createdAt)
-  );
+  const timelineItems = [
+    ...visibleExpenses.map(expense => ({ type: 'expense' as const, entry: expense })),
+    ...visiblePayments.map(payment => ({ type: 'payment' as const, entry: payment }))
+  ].sort((a, b) => getTimestampValue(b.entry.createdAt) - getTimestampValue(a.entry.createdAt));
   const [memberName, setMemberName] = useState('');
   const [memberEmail, setMemberEmail] = useState('');
   const [status, setStatus] = useState('');
@@ -312,10 +312,10 @@ export default function GroupDashboard() {
                     if (item.type === 'expense') {
                       const expense = item.entry;
                       const payerNames = expense.payers
-                        .map(p => members.find(m => m.uid === p.uid)?.displayName ?? p.uid)
+                        .map((payer: { uid: string }) => members.find(member => member.uid === payer.uid)?.displayName ?? payer.uid)
                         .join(', ');
-                      const userShare = expense.splits.find(split => split.uid === user?.uid)?.amount ?? 0;
-                      const userContribution = expense.payers.find(p => p.uid === user?.uid)?.amount ?? 0;
+                      const userShare = expense.splits.find((split: { uid: string }) => split.uid === user?.uid)?.amount ?? 0;
+                      const userContribution = expense.payers.find((payerLine: { uid: string }) => payerLine.uid === user?.uid)?.amount ?? 0;
                       const delta = roundCurrency(userContribution - userShare);
                       return (
                         <div key={expense.id} className="flex flex-wrap items-center justify-between gap-3 py-3">

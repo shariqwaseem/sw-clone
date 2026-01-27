@@ -13,7 +13,7 @@ export default function GroupsPage() {
   const router = useRouter();
   const { groups, loading: groupsLoading } = useGroups(user?.uid);
   const [name, setName] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('PKR');
   const [joinCode, setJoinCode] = useState('');
   const [status, setStatus] = useState('');
 
@@ -71,18 +71,18 @@ export default function GroupsPage() {
       <main className="mx-auto max-w-5xl space-y-8 px-6 py-10">
         <section className="rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold">Create a group</h2>
-          <form onSubmit={handleCreateGroup} className="mt-4 grid gap-4 md:grid-cols-3">
+          <form onSubmit={handleCreateGroup} className="mt-4 flex flex-col gap-4 md:flex-row">
             <input
               required
               value={name}
               onChange={event => setName(event.target.value)}
-              placeholder="Trip to Iceland"
-              className="rounded-lg border border-slate-200 px-3 py-2"
+              placeholder="Trip to Skardu"
+              className="flex-1 rounded-lg border border-slate-200 px-3 py-2"
             />
             <select
               value={currency}
               onChange={event => setCurrency(event.target.value)}
-              className="rounded-lg border border-slate-200 px-3 py-2"
+              className="md:w-32 rounded-lg border border-slate-200 px-3 py-2 md:ml-auto"
             >
               <option value="PKR">PKR</option>
               <option value="USD">USD</option>

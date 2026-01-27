@@ -1,10 +1,14 @@
+import type { Timestamp } from 'firebase/firestore';
+
+type FirestoreDate = number | null | Timestamp;
+
 export interface Group {
   id: string;
   name: string;
   currency: string;
   createdBy: string;
-  createdAt: number | null | { toMillis: () => number };
-  updatedAt: number | null | { toMillis: () => number };
+  createdAt: FirestoreDate;
+  updatedAt: FirestoreDate;
   memberIds?: string[];
 }
 
@@ -37,8 +41,8 @@ export interface Expense {
   payers: PayerLine[];
   splits: SplitLine[];
   createdBy: string;
-  createdAt: number | null | { toMillis: () => number };
-  updatedAt: number | null | { toMillis: () => number };
+  createdAt: FirestoreDate;
+  updatedAt: FirestoreDate;
   isDeleted?: boolean;
 }
 
@@ -50,7 +54,7 @@ export interface Payment {
   date: string;
   note?: string;
   createdBy: string;
-  createdAt: number | null | { toMillis: () => number };
+  createdAt: FirestoreDate;
   isDeleted?: boolean;
 }
 
