@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/components/AuthProvider';
 import { TopNav } from '@/components/TopNav';
 import { useGroups } from '@/hooks/useGroups';
+import { useAllGroupsBalances } from '@/hooks/useAllGroupsBalances';
 import { createGroup, addMemberToGroup } from '@/lib/firestore';
 
 export default function GroupsPage() {
   const { user, loading: authLoading } = useAuthContext();
   const router = useRouter();
   const { groups, loading: groupsLoading } = useGroups(user?.uid);
+  const { balances, loading: balancesLoading } = useAllGroupsBalances(user?.uid);
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState('PKR');
   const [joinCode, setJoinCode] = useState('');
@@ -113,6 +115,30 @@ export default function GroupsPage() {
         </section>
 
         <section className="card">
+          <h2 className="text-xl font-semibold">Overall Balance</h2>
+          {balancesLoading ? (
+            <p className="mt-4 text-slate-500">Calculating balances...</p>
+          ) : balances.length === 0 ? (
+            <p className="mt-4 text-slate-500">All settled up!</p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {balances.filter(b => b.amount > 0).map(person => (
+                <li key={person.uid} className="flex justify-between">
+                  <span>{person.displayName}</span>
+                  <span className="text-emerald-600 font-medium">owes you {person.amount.toFixed(2)}</span>
+                </li>
+              ))}
+              {balances.filter(b => b.amount < 0).map(person => (
+                <li key={person.uid} className="flex justify-between">
+                  <span>{person.displayName}</span>
+                  <span className="text-rose-600 font-medium">you owe {Math.abs(person.amount).toFixed(2)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="card">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Your groups</h2>
           </div>
@@ -123,22 +149,21 @@ export default function GroupsPage() {
           ) : (
             <ul className="mt-4 space-y-3">
               {groups.map(group => (
-                <li
-                  key={group.id}
-                  className="rounded-xl border border-slate-200 px-4 py-4 transition-colors hover:border-slate-300 hover:bg-slate-50"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{group.name}</p>
-                      <p className="text-sm text-slate-500 truncate">{group.currency} · Code: {group.id}</p>
+                <li key={group.id}>
+                  <Link
+                    href={`/groups/${group.id}`}
+                    className="block rounded-xl border border-slate-200 px-4 py-4 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{group.name}</p>
+                        <p className="text-sm text-slate-500 truncate">{group.currency} · Code: {group.id}</p>
+                      </div>
+                      <span className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-brand">
+                        Open
+                      </span>
                     </div>
-                    <Link
-                      href={`/groups/${group.id}`}
-                      className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-brand transition-colors hover:bg-blue-50"
-                    >
-                      Open
-                    </Link>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>
