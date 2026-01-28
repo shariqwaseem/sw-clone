@@ -28,15 +28,15 @@ export default function EditExpensePage() {
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav />
-      <main className="mx-auto max-w-3xl space-y-6 px-6 py-10">
-        <div className="flex items-center justify-between">
+      <main className="mx-auto max-w-2xl space-y-6 px-4 sm:px-6 py-6 sm:py-10">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-semibold">Edit expense</h1>
-          <Link href={`/groups/${groupId}`} className="text-sm text-brand">
-            ← Back to group
+          <Link href={`/groups/${groupId}`} className="text-sm text-brand hover:text-brand-dark">
+            Back to group
           </Link>
         </div>
         {loading ? (
-          <p className="text-slate-500">Loading…</p>
+          <p className="text-slate-500">Loading...</p>
         ) : !group ? (
           <p className="text-slate-500">Group not found.</p>
         ) : expense ? (

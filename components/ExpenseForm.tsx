@@ -251,50 +251,50 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-1 text-sm">
-          <span>Description</span>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="space-y-1">
+          <span className="text-sm text-slate-600">Description</span>
           <input
             value={description}
             onChange={event => setDescription(event.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            className="input-base"
             required
           />
         </label>
-        <label className="space-y-1 text-sm">
-          <span>Total amount</span>
+        <label className="space-y-1">
+          <span className="text-sm text-slate-600">Total amount</span>
           <input
             inputMode="decimal"
             value={totalAmount ? totalAmount.toString() : ''}
             onChange={event => setTotalAmount(event.target.value === '' ? 0 : parseFloat(event.target.value) || 0)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            className="input-base"
             required
           />
         </label>
-        <label className="w-full space-y-1 text-sm">
-          <span>Date</span>
+        <label className="space-y-1">
+          <span className="text-sm text-slate-600">Date</span>
           <input
             type="date"
             value={date}
             onChange={event => setDate(event.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            className="input-base"
           />
         </label>
-        <label className="space-y-1 text-sm">
-          <span>Notes</span>
+        <label className="space-y-1">
+          <span className="text-sm text-slate-600">Notes (optional)</span>
           <input
             value={notes}
             onChange={event => setNotes(event.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2"
+            className="input-base"
           />
         </label>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 p-4">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
         {showQuickOptions && firstOtherMember && (
-          <div className="mb-4 rounded-xl border border-slate-100 p-4">
+          <div className="mb-5 rounded-xl border border-slate-100 bg-white p-4">
             <p className="text-sm font-medium text-slate-700">Quick options</p>
-            <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <QuickOptionButton
                 active={quickOption === 'you-paid-equally'}
                 title="You paid, split equally."
@@ -350,10 +350,10 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
           <h3 className="font-semibold">Payers</h3>
           <span className="text-xs text-slate-500">Total: {payerTotal.toFixed(2)}</span>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {members.map(member => (
-            <label key={member.uid} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm">
-              <span>{member.displayName}</span>
+            <label key={member.uid} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <span className="text-sm truncate">{member.displayName}</span>
               <input
                 inputMode="decimal"
                 value={payers[member.uid]?.toString() ?? ''}
@@ -364,20 +364,20 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                     [member.uid]: event.target.value === '' ? 0 : parseFloat(event.target.value) || 0
                   }));
                 }}
-                className="w-24 rounded border border-slate-200 px-2 py-1 text-right"
+                className="w-full sm:w-28 rounded-lg border border-slate-200 px-3 py-2 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               />
             </label>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 p-4">
-        <div className="flex items-center justify-between">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-4">
           <h3 className="font-semibold">Split between</h3>
           <select
             value={splitMode}
             onChange={event => setSplitMode(event.target.value as SplitMode)}
-            className="rounded-lg border border-slate-200 px-3 py-1 text-sm"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
           >
             <option value="equal">Equally</option>
             <option value="exact">Exact amounts</option>
@@ -385,26 +385,26 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
             <option value="shares">Shares</option>
           </select>
         </div>
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-wrap gap-2">
           {members.map(member => (
             <button
               type="button"
               key={member.uid}
               onClick={() => toggleMember(member.uid)}
-              className={`rounded-full border px-3 py-1 text-sm ${
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                 participantIds.includes(member.uid)
                   ? 'border-brand bg-blue-50 text-brand'
-                  : 'border-slate-200 text-slate-500'
+                  : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
               }`}
             >
               {member.displayName}
             </button>
           ))}
         </div>
-        <div className="mt-4 space-y-3 text-sm">
+        <div className="mt-4 space-y-3">
           {participantIds.map(uid => (
-            <div key={uid} className="rounded-lg border border-slate-100 px-3 py-2">
-              <p className="font-medium">{members.find(m => m.uid === uid)?.displayName ?? uid}</p>
+            <div key={uid} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <p className="font-medium text-sm">{members.find(m => m.uid === uid)?.displayName ?? uid}</p>
               {splitMode === 'exact' && (
                 <input
                   inputMode="decimal"
@@ -415,7 +415,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                       [uid]: event.target.value === '' ? 0 : parseFloat(event.target.value) || 0
                     }))
                   }
-                  className="mt-2 w-full rounded border border-slate-200 px-2 py-1 text-right"
+                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                 />
               )}
               {splitMode === 'percentage' && (
@@ -428,7 +428,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                       [uid]: event.target.value === '' ? 0 : parseFloat(event.target.value) || 0
                     }))
                   }
-                  className="mt-2 w-full rounded border border-slate-200 px-2 py-1 text-right"
+                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                   placeholder="%"
                 />
               )}
@@ -442,7 +442,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                       [uid]: event.target.value === '' ? 0 : parseFloat(event.target.value) || 0
                     }))
                   }
-                  className="mt-2 w-full rounded border border-slate-200 px-2 py-1 text-right"
+                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                   placeholder="Shares"
                 />
               )}
@@ -477,7 +477,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                       return next;
                     });
                   }}
-                  className="mt-1 w-full rounded border border-slate-200 px-2 py-1 text-right"
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
                 />
               </div>
             </div>
@@ -488,15 +488,13 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
 
       {status && <p className="text-sm text-rose-600">{status}</p>}
 
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-brand px-4 py-2 font-medium text-white hover:bg-brand-dark"
-      >
+      <button type="submit" className="btn-primary w-full">
         {expense ? 'Update expense' : 'Save expense'}
       </button>
     </form>
   );
 }
+
 function QuickOptionButton({
   title,
   description,
@@ -512,12 +510,12 @@ function QuickOptionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
-        active ? 'border-brand bg-blue-50 text-brand' : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+      className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+        active ? 'border-brand bg-blue-50 text-brand' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300'
       }`}
     >
-      <p className="font-semibold">{title}</p>
-      <p className="text-xs text-slate-500">{description}</p>
+      <p className="font-semibold text-sm">{title}</p>
+      <p className="mt-1 text-xs text-slate-500">{description}</p>
     </button>
   );
 }

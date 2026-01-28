@@ -57,78 +57,86 @@ export default function GroupsPage() {
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav />
-      <main className="mx-auto max-w-5xl space-y-8 px-6 py-10">
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
+      <main className="mx-auto max-w-5xl space-y-6 sm:space-y-8 px-4 sm:px-6 py-6 sm:py-10">
+        <section className="card">
           <h2 className="text-xl font-semibold">Create a group</h2>
-          <form onSubmit={handleCreateGroup} className="mt-4 flex flex-col gap-4 md:flex-row">
-            <input
-              required
-              value={name}
-              onChange={event => setName(event.target.value)}
-              placeholder="Trip to Skardu"
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-2"
-            />
-            <select
-              value={currency}
-              onChange={event => setCurrency(event.target.value)}
-              className="md:w-32 rounded-lg border border-slate-200 px-3 py-2 md:ml-auto"
-            >
-              <option value="PKR">PKR</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="INR">INR</option>
-              <option value="GBP">GBP</option>
-            </select>
-            <button
-              type="submit"
-              className="rounded-lg bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-dark"
-            >
+          <form onSubmit={handleCreateGroup} className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+            <label className="flex-1 space-y-1">
+              <span className="text-sm text-slate-600">Group name</span>
+              <input
+                required
+                value={name}
+                onChange={event => setName(event.target.value)}
+                placeholder="Trip to Skardu"
+                className="input-base"
+              />
+            </label>
+            <label className="w-full sm:w-36 space-y-1">
+              <span className="text-sm text-slate-600">Currency</span>
+              <select
+                value={currency}
+                onChange={event => setCurrency(event.target.value)}
+                className="select-base"
+              >
+                <option value="PKR">PKR</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="INR">INR</option>
+                <option value="GBP">GBP</option>
+              </select>
+            </label>
+            <button type="submit" className="btn-primary w-full sm:w-auto">
               Create group
             </button>
           </form>
         </section>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <section className="card">
           <h2 className="text-xl font-semibold">Join via share code</h2>
-          <form onSubmit={handleJoinGroup} className="mt-4 flex flex-col gap-4 md:flex-row">
-            <input
-              value={joinCode}
-              onChange={event => setJoinCode(event.target.value)}
-              placeholder="Enter group ID"
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-2"
-            />
-            <button
-              type="submit"
-              className="rounded-lg border border-slate-200 px-4 py-2 font-medium text-slate-700 hover:bg-slate-50"
-            >
+          <form onSubmit={handleJoinGroup} className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+            <label className="flex-1 space-y-1">
+              <span className="text-sm text-slate-600">Group ID</span>
+              <input
+                value={joinCode}
+                onChange={event => setJoinCode(event.target.value)}
+                placeholder="Enter group ID"
+                className="input-base"
+              />
+            </label>
+            <button type="submit" className="btn-secondary w-full sm:w-auto">
               Join group
             </button>
           </form>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-3 text-sm text-slate-500">
             Share your group ID from the dashboard with friends to add them quickly.
           </p>
         </section>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
+        <section className="card">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Your groups</h2>
-            <div />
           </div>
           {groupsLoading ? (
-            <p className="mt-4 text-slate-500">Loading groups…</p>
+            <p className="mt-4 text-slate-500">Loading groups...</p>
           ) : groups.length === 0 ? (
             <p className="mt-4 text-slate-500">No groups yet. Create one above.</p>
           ) : (
             <ul className="mt-4 space-y-3">
               {groups.map(group => (
-                <li key={group.id} className="rounded-xl border border-slate-200 px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{group.name}</p>
-                      <p className="text-sm text-slate-500">{group.currency} · Share code: {group.id}</p>
+                <li
+                  key={group.id}
+                  className="rounded-xl border border-slate-200 px-4 py-4 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{group.name}</p>
+                      <p className="text-sm text-slate-500 truncate">{group.currency} · Code: {group.id}</p>
                     </div>
-                    <Link href={`/groups/${group.id}`} className="font-medium text-brand">
-                      Open →
+                    <Link
+                      href={`/groups/${group.id}`}
+                      className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-brand transition-colors hover:bg-blue-50"
+                    >
+                      Open
                     </Link>
                   </div>
                 </li>

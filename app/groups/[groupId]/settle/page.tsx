@@ -65,23 +65,23 @@ export default function SettlePage() {
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav />
-      <main className="mx-auto max-w-xl space-y-6 px-6 py-10">
-        <div className="flex items-center justify-between">
+      <main className="mx-auto max-w-2xl space-y-6 px-4 sm:px-6 py-6 sm:py-10">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-semibold">Record a payment</h1>
-          <Link href={`/groups/${groupId}`} className="text-sm text-brand">
-            ← Back to group
+          <Link href={`/groups/${groupId}`} className="text-sm text-brand hover:text-brand-dark">
+            Back to group
           </Link>
         </div>
         {loading ? (
-          <p className="text-slate-500">Loading…</p>
+          <p className="text-slate-500">Loading...</p>
         ) : !group ? (
           <p className="text-slate-500">Group not found.</p>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
-            <label className="block text-sm">
-              <span>From</span>
+          <form onSubmit={handleSubmit} className="card space-y-5">
+            <label className="block space-y-1">
+              <span className="text-sm text-slate-600">From</span>
               <select
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="select-base"
                 value={fromUid}
                 onChange={event => setFromUid(event.target.value)}
               >
@@ -93,10 +93,10 @@ export default function SettlePage() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
-              <span>To</span>
+            <label className="block space-y-1">
+              <span className="text-sm text-slate-600">To</span>
               <select
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="select-base"
                 value={toUid}
                 onChange={event => setToUid(event.target.value)}
               >
@@ -108,34 +108,34 @@ export default function SettlePage() {
                 ))}
               </select>
             </label>
-            <label className="block text-sm">
-              <span>Amount</span>
+            <label className="block space-y-1">
+              <span className="text-sm text-slate-600">Amount</span>
               <input
                 inputMode="decimal"
                 value={amount ? amount.toString() : ''}
                 onChange={event => setAmount(event.target.value === '' ? 0 : parseFloat(event.target.value) || 0)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="input-base"
               />
             </label>
-            <label className="block text-sm">
-              <span>Date</span>
+            <label className="block space-y-1">
+              <span className="text-sm text-slate-600">Date</span>
               <input
                 type="date"
                 value={date}
                 onChange={event => setDate(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="input-base"
               />
             </label>
-            <label className="block text-sm">
-              <span>Note</span>
+            <label className="block space-y-1">
+              <span className="text-sm text-slate-600">Note (optional)</span>
               <input
                 value={note}
                 onChange={event => setNote(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="input-base"
               />
             </label>
             {status && <p className="text-sm text-rose-600">{status}</p>}
-            <button type="submit" className="w-full rounded-lg bg-brand px-4 py-2 font-medium text-white">
+            <button type="submit" className="btn-primary w-full">
               Save payment
             </button>
           </form>

@@ -124,31 +124,30 @@ export default function GroupDashboard() {
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav />
-      <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
+      <main className="mx-auto max-w-5xl space-y-6 sm:space-y-8 px-4 sm:px-6 py-6 sm:py-10">
         {loading ? (
-          <p className="text-slate-500">Loading group…</p>
+          <p className="text-slate-500">Loading group...</p>
         ) : !group ? (
           <p className="text-slate-500">Group not found.</p>
         ) : (
           <>
-            <section className="rounded-2xl bg-white p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
+            <section className="card">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <p className="text-sm uppercase text-slate-400">Group</p>
-                  <h1 className="text-2xl font-semibold">{group.name}</h1>
+                  <h1 className="text-2xl font-semibold truncate">{group.name}</h1>
                   <p className="text-sm text-slate-500">Currency: {group.currency}</p>
-                  <p className="text-sm text-slate-500">Share code: {group.id}</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
                     href={`/groups/${group.id}/expenses/new`}
-                    className="rounded-lg bg-brand px-4 py-2 font-medium text-white"
+                    className="btn-primary text-center"
                   >
                     Add expense
                   </Link>
                   <Link
                     href={`/groups/${group.id}/settle`}
-                    className="rounded-lg border border-slate-200 px-4 py-2 font-medium text-slate-700"
+                    className="btn-secondary text-center"
                   >
                     Settle up
                   </Link>
@@ -156,16 +155,16 @@ export default function GroupDashboard() {
               </div>
             </section>
 
-            <section className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <section className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+              <div className="card">
                 <h2 className="text-lg font-semibold">Net balances</h2>
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-4 space-y-3">
                   {members.map(member => {
                     const balance = balances[member.uid] ?? 0;
                     return (
                       <li key={member.uid} className="flex items-center justify-between text-sm">
-                        <span>{member.displayName}</span>
-                        <span className={balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                        <span className="truncate mr-2">{member.displayName}</span>
+                        <span className={`font-medium shrink-0 ${balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {formatCurrency(balance)}
                         </span>
                       </li>
@@ -174,18 +173,18 @@ export default function GroupDashboard() {
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <div className="card">
                 <h2 className="text-lg font-semibold">Suggested settlements</h2>
                 {settlements.length === 0 ? (
                   <p className="mt-4 text-sm text-slate-500">Group is already balanced.</p>
                 ) : (
-                  <ul className="mt-4 space-y-2 text-sm">
+                  <ul className="mt-4 space-y-3 text-sm">
                     {settlements.map(s => {
                       const from = members.find(m => m.uid === s.fromUid)?.displayName ?? s.fromUid;
                       const to = members.find(m => m.uid === s.toUid)?.displayName ?? s.toUid;
                       return (
-                        <li key={`${s.fromUid}-${s.toUid}`}>
-                          <span className="font-medium">{from}</span> should pay <span>{formatCurrency(s.amount)}</span>{' '}
+                        <li key={`${s.fromUid}-${s.toUid}`} className="leading-relaxed">
+                          <span className="font-medium">{from}</span> pays <span className="font-medium text-brand">{formatCurrency(s.amount)}</span>{' '}
                           to <span className="font-medium">{to}</span>
                         </li>
                       );
@@ -195,8 +194,8 @@ export default function GroupDashboard() {
               </div>
             </section>
 
-            <section className="rounded-2xl bg-white p-6 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-4">
+            <section className="card">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">Members</h2>
                   <p className="text-sm text-slate-500">Share this code to invite people.</p>
@@ -207,19 +206,20 @@ export default function GroupDashboard() {
                     setCopiedCode(true);
                     setTimeout(() => setCopiedCode(false), 1500);
                   }}
-                  className="min-w-[300px] rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 text-center"
+                  className="btn-secondary w-full sm:w-auto"
                 >
-                  {copiedCode ? 'Copied!' : `Copy code: ${group.id}`}
+                  <span className="sm:hidden">{copiedCode ? 'Copied!' : 'Copy invite code'}</span>
+                  <span className="hidden sm:inline">{copiedCode ? 'Copied!' : `Copy code: ${group.id}`}</span>
                 </button>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
                 {members.map(member => (
-                  <li key={member.uid} className="flex items-center justify-between">
-                    <span>
+                  <li key={member.uid} className="flex items-center justify-between gap-2 py-1">
+                    <span className="truncate">
                       {member.displayName}
-                      {member.email ? ` · ${member.email}` : ''}
+                      <span className="hidden sm:inline text-slate-400">{member.email ? ` · ${member.email}` : ''}</span>
                     </span>
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 shrink-0">
                       <span>
                         {member.role}
                         {member.status === 'removed' ? ' (removed)' : ''}
@@ -232,7 +232,7 @@ export default function GroupDashboard() {
                               name: member.displayName || member.email || member.uid
                             })
                           }
-                          className="text-rose-600"
+                          className="text-rose-600 hover:text-rose-700 py-1 px-2 -mr-2"
                         >
                           Remove
                         </button>
@@ -243,9 +243,9 @@ export default function GroupDashboard() {
               </ul>
             </section>
 
-            {actionMessage && <p className="mt-2 text-sm text-slate-500">{actionMessage}</p>}
+            {actionMessage && <p className="text-sm text-slate-500">{actionMessage}</p>}
 
-            <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <section className="card">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Timeline</h2>
                 <span className="text-sm text-slate-500">{timelineItems.length} entries</span>
@@ -253,7 +253,7 @@ export default function GroupDashboard() {
               {timelineItems.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-500">No activity yet.</p>
               ) : (
-                <div className="mt-4 space-y-4">
+                <div className="mt-4 space-y-3">
                   {timelineItems.map(item => {
                     const dateLabel = new Date(item.entry.date).toLocaleDateString('en-US', {
                       day: '2-digit',
@@ -270,29 +270,31 @@ export default function GroupDashboard() {
                       return (
                         <div
                           key={expense.id}
-                          className="rounded-xl border border-slate-100 p-4 md:flex md:items-center md:justify-between md:gap-6"
+                          className="rounded-xl border border-slate-100 p-4 transition-colors hover:border-slate-200 hover:bg-slate-50/50"
                         >
-                          <div className="md:flex-1">
-                            <p className="text-xs uppercase text-slate-400">{dateLabel}</p>
-                            <p className="mt-1 text-base font-medium text-slate-900 md:text-lg">{expense.description}</p>
-                            <p className="mt-1 text-sm text-slate-600">
-                              {payerNames} paid {formatCurrency(expense.totalAmount)}
-                            </p>
-                          </div>
-                          <div className="mt-3 text-sm md:mt-0 md:text-right">
-                            <p className={`font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {delta >= 0 ? 'You lent' : 'You borrowed'} {formatCurrency(Math.abs(delta))}
-                            </p>
-                            <div className="mt-3 flex gap-4 text-xs md:justify-end">
-                              <Link href={`/groups/${group.id}/expenses/${expense.id}/edit`} className="text-brand">
-                                Edit
-                              </Link>
-                              <button
-                                onClick={() => setEntryToDelete({ type: 'expense', id: expense.id })}
-                                className="text-rose-600"
-                              >
-                                Delete
-                              </button>
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs uppercase text-slate-400">{dateLabel}</p>
+                              <p className="mt-1 text-base font-medium text-slate-900 truncate">{expense.description}</p>
+                              <p className="mt-1 text-sm text-slate-600 truncate">
+                                {payerNames} paid {formatCurrency(expense.totalAmount)}
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-2">
+                              <p className={`font-medium text-sm ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {delta >= 0 ? 'You lent' : 'You borrowed'} {formatCurrency(Math.abs(delta))}
+                              </p>
+                              <div className="flex gap-4 text-xs">
+                                <Link href={`/groups/${group.id}/expenses/${expense.id}/edit`} className="text-brand hover:text-brand-dark py-1">
+                                  Edit
+                                </Link>
+                                <button
+                                  onClick={() => setEntryToDelete({ type: 'expense', id: expense.id })}
+                                  className="text-rose-600 hover:text-rose-700 py-1"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -307,29 +309,31 @@ export default function GroupDashboard() {
                     return (
                       <div
                         key={payment.id}
-                        className="rounded-xl border border-slate-100 p-4 md:flex md:items-center md:justify-between md:gap-6"
+                        className="rounded-xl border border-slate-100 p-4 transition-colors hover:border-slate-200 hover:bg-slate-50/50"
                       >
-                        <div className="md:flex-1">
-                          <p className="text-xs uppercase text-slate-400">{dateLabel}</p>
-                          <p className="mt-1 text-base font-medium text-slate-900 md:text-lg">Settle up payment</p>
-                          <p className="mt-1 text-sm text-slate-600">
-                            {fromName} paid {toName} {formatCurrency(payment.amount)}
-                          </p>
-                        </div>
-                        <div className="mt-3 text-sm md:mt-0 md:text-right">
-                          {affectsUser ? (
-                            <p className={`font-medium ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {delta >= 0 ? 'You lent' : 'You borrowed'} {formatCurrency(Math.abs(delta))}
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs uppercase text-slate-400">{dateLabel}</p>
+                            <p className="mt-1 text-base font-medium text-slate-900">Settle up payment</p>
+                            <p className="mt-1 text-sm text-slate-600 truncate">
+                              {fromName} paid {toName} {formatCurrency(payment.amount)}
                             </p>
-                          ) : (
-                            <p className="text-xs text-slate-500">Not involving you</p>
-                          )}
-                          <button
-                            onClick={() => setEntryToDelete({ type: 'payment', id: payment.id })}
-                            className="mt-3 text-xs text-rose-600"
-                          >
-                            Delete
-                          </button>
+                          </div>
+                          <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:gap-2">
+                            {affectsUser ? (
+                              <p className={`font-medium text-sm ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {delta >= 0 ? 'You lent' : 'You borrowed'} {formatCurrency(Math.abs(delta))}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-slate-500">Not involving you</p>
+                            )}
+                            <button
+                              onClick={() => setEntryToDelete({ type: 'payment', id: payment.id })}
+                              className="text-xs text-rose-600 hover:text-rose-700 py-1"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -347,7 +351,7 @@ export default function GroupDashboard() {
                     setShowDeleteNameModal(true);
                     setShowDeleteDataModal(false);
                   }}
-                  className="mt-3 text-xs font-semibold text-rose-600"
+                  className="mt-3 text-xs font-semibold text-rose-600 hover:text-rose-700 py-1"
                 >
                   Delete group permanently
                 </button>
@@ -365,18 +369,18 @@ export default function GroupDashboard() {
           Type <span className="font-semibold">{group?.name}</span> to confirm deletion.
         </p>
         <input
-          className="w-full rounded-lg border border-slate-200 px-3 py-2"
+          className="input-base"
           placeholder="Group name"
           value={deleteNameInput}
           onChange={event => setDeleteNameInput(event.target.value)}
         />
-        <div className="flex justify-end gap-3">
-          <button className="rounded-lg border border-slate-200 px-4 py-2" onClick={closeDeleteFlow}>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button className="btn-secondary" onClick={closeDeleteFlow}>
             Cancel
           </button>
           <button
-            className={`rounded-lg px-4 py-2 text-white ${
-              deleteNameInput === group?.name ? 'bg-rose-600' : 'bg-rose-300'
+            className={`btn ${
+              deleteNameInput === group?.name ? 'bg-danger text-white hover:bg-danger-dark' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
             disabled={deleteNameInput !== group?.name}
             onClick={() => {
@@ -397,16 +401,16 @@ export default function GroupDashboard() {
           This will delete all members, expenses, and payments inside <span className="font-semibold">{group?.name}</span>.
           This action cannot be undone.
         </p>
-        <div className="flex justify-end gap-3">
-          <button className="rounded-lg border border-slate-200 px-4 py-2" onClick={closeDeleteFlow}>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button className="btn-secondary" onClick={closeDeleteFlow}>
             Cancel
           </button>
           <button
-            className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white disabled:bg-rose-300"
+            className="btn-danger disabled:opacity-50"
             disabled={deletingGroup}
             onClick={confirmDeleteGroup}
           >
-            {deletingGroup ? 'Deleting…' : 'Delete group'}
+            {deletingGroup ? 'Deleting...' : 'Delete group'}
           </button>
         </div>
       </Modal>
@@ -416,12 +420,12 @@ export default function GroupDashboard() {
         onClose={() => setEntryToDelete(null)}
       >
         <p className="text-sm text-slate-600">This will archive the selected item from the timeline.</p>
-        <div className="flex justify-end gap-3">
-          <button className="rounded-lg border border-slate-200 px-4 py-2" onClick={() => setEntryToDelete(null)}>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button className="btn-secondary" onClick={() => setEntryToDelete(null)}>
             Cancel
           </button>
           <button
-            className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white"
+            className="btn-danger"
             onClick={confirmDeleteEntry}
           >
             Delete
@@ -437,16 +441,16 @@ export default function GroupDashboard() {
           Remove <span className="font-semibold">{memberToRemove?.name}</span> from this group? They will lose
           access to expenses and balances.
         </p>
-        <div className="flex justify-end gap-3">
-          <button className="rounded-lg border border-slate-200 px-4 py-2" onClick={closeMemberRemoval}>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button className="btn-secondary" onClick={closeMemberRemoval}>
             Cancel
           </button>
           <button
-            className="rounded-lg bg-rose-600 px-4 py-2 font-medium text-white disabled:bg-rose-300"
+            className="btn-danger disabled:opacity-50"
             disabled={removingMember}
             onClick={handleRemoveMember}
           >
-            {removingMember ? 'Removing…' : 'Remove'}
+            {removingMember ? 'Removing...' : 'Remove'}
           </button>
         </div>
       </Modal>
