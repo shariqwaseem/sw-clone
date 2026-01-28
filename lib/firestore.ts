@@ -90,6 +90,28 @@ export async function addMemberToGroup(groupId: string, member: GroupMember) {
   });
 }
 
+export async function removeMemberFromGroup(groupId: string, memberUid: string) {
+  if (!isOnline()) {
+    throw new Error('Go online to remove a member.');
+  }
+  // Get current group to update memberIds
+  const groupRef = doc(firestore, 'groups', groupId);
+  const groupSnap = await getDoc(groupRef);
+  if (!groupSnap.exists()) {
+    throw new Error('Group not found');
+  }
+  const groupData = groupSnap.data();
+  const updatedMemberIds = (groupData.memberIds || []).filter((uid: string) => uid !== memberUid);
+
+  // Delete member document
+  await deleteDoc(doc(firestore, 'groups', groupId, 'members', memberUid));
+
+  // Update memberIds array
+  await updateDoc(groupRef, {
+    memberIds: updatedMemberIds
+  });
+}
+
 
 export function subscribeToGroup(groupId: string, callback: (data: {
   group: Group | null;

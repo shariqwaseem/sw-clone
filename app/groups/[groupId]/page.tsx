@@ -12,7 +12,8 @@ import { computeGroupNetBalances, roundCurrency, simplifySettlements } from '@/l
 import {
   deleteGroupAndData,
   softDeleteExpense,
-  softDeletePayment
+  softDeletePayment,
+  removeMemberFromGroup
 } from '@/lib/firestore';
 
 export default function GroupDashboard() {
@@ -44,6 +45,10 @@ export default function GroupDashboard() {
   const [deleteNameInput, setDeleteNameInput] = useState('');
   const [deletingGroup, setDeletingGroup] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<{ type: 'expense' | 'payment'; id: string } | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<{ uid: string; displayName: string } | null>(null);
+
+  const currentUserMember = members.find(member => member.uid === user?.uid);
+  const isAdmin = currentUserMember?.role === 'admin';
 
   const balances = useMemo(() => {
     if (!group) return {};
@@ -97,6 +102,18 @@ export default function GroupDashboard() {
       setActionMessage((error as Error).message);
     } finally {
       setEntryToDelete(null);
+    }
+  };
+
+  const confirmRemoveMember = async () => {
+    if (!groupId || !memberToRemove) return;
+    try {
+      await removeMemberFromGroup(groupId, memberToRemove.uid);
+      setActionMessage(`${memberToRemove.displayName} removed from group`);
+    } catch (error) {
+      setActionMessage((error as Error).message);
+    } finally {
+      setMemberToRemove(null);
     }
   };
 
@@ -197,9 +214,19 @@ export default function GroupDashboard() {
                       {member.displayName}
                       <span className="hidden sm:inline text-slate-400">{member.email ? ` · ${member.email}` : ''}</span>
                     </span>
-                    <span className="text-xs text-slate-500 shrink-0">
-                      {member.role}
-                    </span>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs text-slate-500">
+                        {member.role}
+                      </span>
+                      {isAdmin && member.uid !== user?.uid && (
+                        <button
+                          onClick={() => setMemberToRemove({ uid: member.uid, displayName: member.displayName })}
+                          className="text-xs text-rose-600 hover:text-rose-700"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -391,6 +418,26 @@ export default function GroupDashboard() {
             onClick={confirmDeleteEntry}
           >
             Delete
+          </button>
+        </div>
+      </Modal>
+      <Modal
+        title="Remove member"
+        open={Boolean(memberToRemove)}
+        onClose={() => setMemberToRemove(null)}
+      >
+        <p className="text-sm text-slate-600">
+          Are you sure you want to remove <span className="font-semibold">{memberToRemove?.displayName}</span> from this group?
+        </p>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button className="btn-secondary" onClick={() => setMemberToRemove(null)}>
+            Cancel
+          </button>
+          <button
+            className="btn-danger"
+            onClick={confirmRemoveMember}
+          >
+            Remove
           </button>
         </div>
       </Modal>
