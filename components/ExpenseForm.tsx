@@ -352,8 +352,8 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {members.map(member => (
-            <label key={member.uid} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <span className="text-sm truncate">{member.displayName}</span>
+            <label key={member.uid} className="block rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <span className="text-sm font-medium text-slate-700">{member.displayName}</span>
               <input
                 inputMode="decimal"
                 value={payers[member.uid]?.toString() ?? ''}
@@ -364,7 +364,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
                     [member.uid]: event.target.value === '' ? 0 : parseFloat(event.target.value) || 0
                   }));
                 }}
-                className="w-full sm:w-28 rounded-lg border border-slate-200 px-3 py-2 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-right text-sm transition-colors hover:border-slate-300 focus:border-brand focus:ring-2 focus:ring-brand/20 focus:outline-none"
               />
             </label>
           ))}
