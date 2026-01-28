@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Timestamp } from 'firebase/firestore';
 import { useParams, useRouter } from 'next/navigation';
@@ -10,7 +10,6 @@ import { useGroupData } from '@/hooks/useGroupData';
 import { Modal } from '@/components/Modal';
 import { computeGroupNetBalances, roundCurrency, simplifySettlements } from '@/lib/calculations';
 import {
-  addMemberToGroup,
   deleteGroupAndData,
   removeMemberFromGroup,
   softDeleteExpense,
@@ -39,9 +38,6 @@ export default function GroupDashboard() {
     ...visibleExpenses.map(expense => ({ type: 'expense' as const, entry: expense })),
     ...visiblePayments.map(payment => ({ type: 'payment' as const, entry: payment }))
   ].sort((a, b) => getTimestampValue(b.entry.createdAt) - getTimestampValue(a.entry.createdAt));
-  const [memberName, setMemberName] = useState('');
-  const [memberEmail, setMemberEmail] = useState('');
-  const [status, setStatus] = useState('');
   const [actionMessage, setActionMessage] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
   const [showDeleteNameModal, setShowDeleteNameModal] = useState(false);
@@ -87,32 +83,6 @@ export default function GroupDashboard() {
     }
   };
 
-  const handleAddMember = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!groupId) return;
-    if (!memberName.trim()) {
-      setStatus('Enter a member name');
-      return;
-    }
-    const uid = memberEmail ? memberEmail.toLowerCase() : crypto.randomUUID();
-    setActionMessage('');
-    try {
-      await addMemberToGroup(groupId, {
-        uid,
-        displayName: memberName.trim(),
-        email: memberEmail.trim(),
-        joinedAt: Date.now(),
-        role: 'member',
-        status: 'active'
-      });
-      setMemberName('');
-      setMemberEmail('');
-      setStatus('Member added');
-    } catch (error) {
-      setStatus((error as Error).message);
-    }
-  };
-
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: group?.currency ?? 'USD' }).format(amount);
 
@@ -130,7 +100,6 @@ export default function GroupDashboard() {
       setActionMessage((error as Error).message);
     } finally {
       setEntryToDelete(null);
-      setStatus('');
     }
   };
 
@@ -144,7 +113,6 @@ export default function GroupDashboard() {
     setRemovingMember(true);
     try {
       await removeMemberFromGroup(groupId, memberToRemove.uid);
-      setStatus('');
       setActionMessage('Member removed');
       closeMemberRemoval();
     } catch (error) {
@@ -273,7 +241,6 @@ export default function GroupDashboard() {
                   </li>
                 ))}
               </ul>
-              {status && <p className="mt-3 text-xs text-slate-500">{status}</p>}
             </section>
 
             {actionMessage && <p className="mt-2 text-sm text-slate-500">{actionMessage}</p>}

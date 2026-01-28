@@ -4,10 +4,11 @@ A client-side rendered Splitwise-style expense splitting app built with Next.js 
 
 ## Features
 - Google sign-in (Firebase Auth) and auth-aware routing guard.
-- Groups with share code onboarding, email-style invites, soft-delete member management, and demo data seeding.
+- Groups with share-code onboarding, soft-delete member management, and offline-friendly caching.
 - Expense ledger model with multi-payer contributions, equal/exact/percentage/share splits, per-user adjustments, and deterministic rounding.
 - Real-time balances, “who owes who” simplification, and settlement recording via Firestore listeners.
 - Payments, editing, and soft deletion for both expenses and payments.
+- Local IndexedDB cache + mutation queue keeps data usable offline and syncs when the browser reconnects.
 - Type-safe calculation engine with unit tests covering complex scenarios.
 
 ## Getting Started
@@ -39,16 +40,13 @@ npm run dev
 ```
 Visit `http://localhost:3000`, sign in with Google, and start creating groups.
 
-### 4. Seed demo data
-On the `/groups` page, click **“Seed demo group”** to populate a sample trip with expenses, members, and balances for quick validation.
-
-### 5. Tests
+### 4. Tests
 Ledger logic is covered by Vitest. Run:
 ```bash
 npm test
 ```
 
-### 6. Deploy to Vercel
+### 5. Deploy to Vercel
 1. Push this repo to GitHub.
 2. In Vercel, import the repo and select the **Next.js** framework (default settings work).
 3. Add the same Firebase env vars to the Vercel project settings.
@@ -76,7 +74,7 @@ tests/              # Vitest specs for ledger logic
 ```
 
 ## Test Plan & Scenarios
-- **Auth & onboarding**: Sign in with Google, create a group, invite via share code, seed demo data.
+- **Auth & onboarding**: Sign in with Google, create a group, invite via share code.
 - **Single payer equal split**: Add a $120 dinner paid by one person and split equally — expect 80/‑40/‑40 balances (covered by tests).
 - **Multi-payer custom split (₹10,000 example)**: Two people pay ₹3,000 and ₹7,000 for a ₹10,000 bill but should owe ₹5,000 each — verify the ledger shows ±₹2,000 balances and suggested settlement resolves it.
 - **Multi-payer equal split**: Enter consecutive expenses paid by different people; balances should aggregate correctly.
@@ -85,8 +83,15 @@ tests/              # Vitest specs for ledger logic
 - **Rounding edge case**: Use amounts like 33.33/33.33/33.34 and ensure overall balance remains deterministic (unit test provided).
 - **Payments**: Record a settle-up payment and confirm it lowers the debtor’s balance while raising the creditor’s.
 - **Soft deletes**: Delete an expense/payment and verify it disappears from UI and balances recompute.
+- **Offline queue**: Go offline via DevTools, add an expense/payment, then reconnect and confirm it syncs to Firestore and disappears from the pending list.
 
 ## Notes
 - All pages are marked as client components to keep rendering CSR-only.
 - Ledger calculations (`lib/calculations.ts`) power the UI summaries and the Vitest suite ensures accuracy.
-- The Firestore helpers provide demo data creation, member management, and soft deletes without additional backend code.
+- The Firestore helpers manage realtime sync while `lib/localDb.ts` keeps a local cache so the app keeps working offline.
+
+## Offline mode
+- The app mirrors groups, members, expenses, and payments into IndexedDB (via `lib/localDb.ts`).
+- Mutations performed offline are written to the local cache immediately and appended to a pending queue.
+- When the browser fires the `online` event, the queue replays in order; Firestore listeners refresh the cache afterward.
+- You don’t need to refresh: the UI reads from the cache when offline and quietly rehydrates when back online.

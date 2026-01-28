@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { v4 as uuid } from 'uuid';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { TopNav } from '@/components/TopNav';
@@ -45,6 +46,7 @@ export default function SettlePage() {
       await recordPayment(
         groupId,
         {
+          id: uuid(),
           fromUid,
           toUid,
           amount,

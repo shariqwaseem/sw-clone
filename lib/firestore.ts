@@ -13,10 +13,13 @@ import {
   updateDoc,
   where
 } from 'firebase/firestore';
-import type { User } from 'firebase/auth';
 import { firestore } from './firebase';
-import type { Expense, Group, GroupMember, Payment } from '@/types';
+import type { Expense, Group, GroupMember, Payment, MinimalUser } from '@/types';
 import { roundCurrency, validateExpense } from './calculations';
+import { mutateCachedGroup } from './localDb';
+import { queueMutation } from './offlineQueue';
+
+const isOnline = () => (typeof navigator === 'undefined' ? true : navigator.onLine);
 
 const groupsCol = collection(firestore, 'groups');
 
@@ -46,8 +49,11 @@ export async function createGroup({
 }: {
   name: string;
   currency: string;
-  user: User;
+  user: MinimalUser;
 }) {
+  if (!isOnline()) {
+    throw new Error('Go online to create a new group.');
+  }
   const groupDoc = await addDoc(groupsCol, {
     name,
     currency,
@@ -151,18 +157,30 @@ export function subscribeToGroup(groupId: string, callback: (data: {
 
 export async function createExpense(
   groupId: string,
-  expense: Omit<Expense, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>,
-  user: User
+  expense: Omit<Expense, 'createdAt' | 'updatedAt' | 'createdBy'>,
+  user: MinimalUser
 ) {
-  validateExpense({
-    ...expense,
-    id: '',
+  const id = expense.id ?? crypto.randomUUID();
+  const expenseDoc = doc(firestore, 'groups', groupId, 'expenses', id);
+  const prepared: Expense = {
+    ...(expense as Expense),
+    id,
+    createdBy: user.uid,
     createdAt: Date.now(),
-    updatedAt: Date.now(),
-    createdBy: user.uid
-  } as Expense);
-  await addDoc(collection(firestore, 'groups', groupId, 'expenses'), {
+    updatedAt: Date.now()
+  };
+  validateExpense(prepared);
+  if (!isOnline()) {
+    await mutateCachedGroup(groupId, cache => ({
+      ...cache,
+      expenses: [prepared, ...cache.expenses.filter(existing => existing.id !== id)]
+    }));
+    await queueMutation({ kind: 'createExpense', groupId, payload: { groupId, expense: prepared, user } });
+    return;
+  }
+  await setDoc(expenseDoc, {
     ...expense,
+    id,
     createdBy: user.uid,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -173,8 +191,22 @@ export async function updateExpense(
   groupId: string,
   expenseId: string,
   changes: Partial<Expense>,
-  user: User
+  user: MinimalUser
 ) {
+  if (!isOnline()) {
+    await mutateCachedGroup(groupId, cache => ({
+      ...cache,
+      expenses: cache.expenses.map(expense =>
+        expense.id === expenseId ? { ...expense, ...changes, updatedAt: Date.now() } : expense
+      )
+    }));
+    await queueMutation({
+      kind: 'updateExpense',
+      groupId,
+      payload: { groupId, expenseId, changes, user }
+    });
+    return;
+  }
   await updateDoc(doc(firestore, 'groups', groupId, 'expenses', expenseId), {
     ...changes,
     updatedAt: serverTimestamp(),
@@ -183,6 +215,16 @@ export async function updateExpense(
 }
 
 export async function softDeleteExpense(groupId: string, expenseId: string) {
+  if (!isOnline()) {
+    await mutateCachedGroup(groupId, cache => ({
+      ...cache,
+      expenses: cache.expenses.map(expense =>
+        expense.id === expenseId ? { ...expense, isDeleted: true, updatedAt: Date.now() } : expense
+      )
+    }));
+    await queueMutation({ kind: 'deleteExpense', groupId, payload: { groupId, expenseId } });
+    return;
+  }
   await updateDoc(doc(firestore, 'groups', groupId, 'expenses', expenseId), {
     isDeleted: true,
     updatedAt: serverTimestamp()
@@ -191,17 +233,43 @@ export async function softDeleteExpense(groupId: string, expenseId: string) {
 
 export async function recordPayment(
   groupId: string,
-  payment: Omit<Payment, 'id' | 'createdAt' | 'createdBy'>,
-  user: User
+  payment: Omit<Payment, 'createdAt' | 'createdBy'>,
+  user: MinimalUser
 ) {
-  await addDoc(collection(firestore, 'groups', groupId, 'payments'), {
+  const id = payment.id ?? crypto.randomUUID();
+  const prepared: Payment = {
+    ...(payment as Payment),
+    id,
+    createdBy: user.uid,
+    createdAt: Date.now()
+  };
+  if (!isOnline()) {
+    await mutateCachedGroup(groupId, cache => ({
+      ...cache,
+      payments: [prepared, ...cache.payments.filter(existing => existing.id !== id)]
+    }));
+    await queueMutation({ kind: 'recordPayment', groupId, payload: { groupId, payment: prepared, user } });
+    return;
+  }
+  await setDoc(doc(firestore, 'groups', groupId, 'payments', id), {
     ...payment,
+    id,
     createdAt: serverTimestamp(),
     createdBy: user.uid
   });
 }
 
 export async function softDeletePayment(groupId: string, paymentId: string) {
+  if (!isOnline()) {
+    await mutateCachedGroup(groupId, cache => ({
+      ...cache,
+      payments: cache.payments.map(payment =>
+        payment.id === paymentId ? { ...payment, isDeleted: true } : payment
+      )
+    }));
+    await queueMutation({ kind: 'deletePayment', groupId, payload: { groupId, paymentId } });
+    return;
+  }
   await updateDoc(doc(firestore, 'groups', groupId, 'payments', paymentId), {
     isDeleted: true,
     updatedAt: serverTimestamp()
@@ -218,84 +286,4 @@ export async function deleteGroupAndData(groupId: string) {
   }
 
   await deleteDoc(groupRef);
-}
-
-export async function createDemoGroup(user: User) {
-  const groupId = await createGroup({
-    name: 'Friends Trip',
-    currency: 'USD',
-    user
-  });
-
-  const friends: GroupMember[] = [
-    {
-      uid: user.uid,
-      displayName: user.displayName ?? 'You',
-      email: user.email ?? '',
-      role: 'admin',
-      status: 'active',
-      joinedAt: Date.now()
-    },
-    {
-      uid: 'demo-alex',
-      displayName: 'Alex',
-      email: 'alex@example.com',
-      role: 'member',
-      status: 'active',
-      joinedAt: Date.now()
-    },
-    {
-      uid: 'demo-jamie',
-      displayName: 'Jamie',
-      email: 'jamie@example.com',
-      role: 'member',
-      status: 'active',
-      joinedAt: Date.now()
-    }
-  ];
-
-  await Promise.all(friends.map(friend => addMemberToGroup(groupId, friend)));
-
-  await createExpense(
-    groupId,
-    {
-      description: 'Hotel villa',
-      totalAmount: 900,
-      currency: 'USD',
-      date: new Date().toISOString(),
-      notes: 'Alex booked the stay',
-      payers: [
-        { uid: 'demo-alex', amount: 300 },
-        { uid: user.uid, amount: 600 }
-      ],
-      splits: [
-        { uid: user.uid, amount: 300 },
-        { uid: 'demo-alex', amount: 300 },
-        { uid: 'demo-jamie', amount: 300 }
-      ]
-    },
-    user
-  );
-
-  await createExpense(
-    groupId,
-    {
-      description: 'Surf lessons',
-      totalAmount: 200,
-      currency: 'USD',
-      date: new Date().toISOString(),
-      notes: 'Jamie covered tips',
-      payers: [
-        { uid: 'demo-jamie', amount: 200 }
-      ],
-      splits: [
-        { uid: user.uid, amount: 80 },
-        { uid: 'demo-alex', amount: 60 },
-        { uid: 'demo-jamie', amount: 60 }
-      ]
-    },
-    user
-  );
-
-  return groupId;
 }

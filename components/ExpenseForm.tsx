@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import type { Expense, GroupMember } from '@/types';
+import { v4 as uuid } from 'uuid';
 import { createExpense, updateExpense } from '@/lib/firestore';
 import { useAuthContext } from './AuthProvider';
 import { roundCurrency, validateExpense } from '@/lib/calculations';
@@ -197,8 +198,9 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
       return;
     }
 
+    const expenseId = expense?.id ?? uuid();
     const payload = {
-      id: expense?.id ?? 'new-expense',
+      id: expenseId,
       description,
       totalAmount,
       currency,
@@ -222,7 +224,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
       if (expense) {
         await updateExpense(
           groupId,
-          expense.id,
+          expenseId,
           {
             description,
             totalAmount,
@@ -236,15 +238,7 @@ export function ExpenseForm({ groupId, members, currency, expense, onSaved }: Pr
       } else {
         await createExpense(
           groupId,
-          {
-            description,
-            totalAmount,
-            currency,
-            date,
-            notes,
-            payers: finalPayers,
-            splits: finalSplits
-          },
+          payload,
           user
         );
       }

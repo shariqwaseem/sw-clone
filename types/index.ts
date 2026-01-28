@@ -63,3 +63,9 @@ export interface Settlement {
   toUid: string;
   amount: number;
 }
+
+export interface MinimalUser {
+  uid: string;
+  email?: string | null;
+  displayName?: string | null;
+}

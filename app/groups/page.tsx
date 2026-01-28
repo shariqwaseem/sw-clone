@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/components/AuthProvider';
 import { TopNav } from '@/components/TopNav';
 import { useGroups } from '@/hooks/useGroups';
-import { createDemoGroup, createGroup, addMemberToGroup } from '@/lib/firestore';
+import { createGroup, addMemberToGroup } from '@/lib/firestore';
 
 export default function GroupsPage() {
   const { user, loading: authLoading } = useAuthContext();
@@ -49,17 +49,6 @@ export default function GroupsPage() {
       });
       setJoinCode('');
       setStatus('Joined group!');
-    } catch (error) {
-      setStatus((error as Error).message);
-    }
-  };
-
-  const handleDemoGroup = async () => {
-    if (!user) return;
-    setStatus('Creating demo data…');
-    try {
-      await createDemoGroup(user);
-      setStatus('Demo group created.');
     } catch (error) {
       setStatus((error as Error).message);
     }
