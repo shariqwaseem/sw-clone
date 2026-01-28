@@ -4,6 +4,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   orderBy,
@@ -40,6 +41,12 @@ export function subscribeToGroups(uid: string, callback: (groups: Group[]) => vo
     groups.sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
     callback(groups);
   });
+}
+
+export async function getGroup(groupId: string): Promise<Group | null> {
+  const snap = await getDoc(doc(firestore, 'groups', groupId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Group;
 }
 
 export async function createGroup({

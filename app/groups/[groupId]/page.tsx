@@ -198,18 +198,17 @@ export default function GroupDashboard() {
               <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">Members</h2>
-                  <p className="text-sm text-slate-500">Share this code to invite people.</p>
+                  <p className="text-sm text-slate-500">Share the invite link to add people.</p>
                 </div>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(group.id);
+                    navigator.clipboard.writeText(`${window.location.origin}/invite/${group.id}`);
                     setCopiedCode(true);
                     setTimeout(() => setCopiedCode(false), 1500);
                   }}
                   className="btn-secondary w-full sm:w-auto"
                 >
-                  <span className="sm:hidden">{copiedCode ? 'Copied!' : 'Copy invite code'}</span>
-                  <span className="hidden sm:inline">{copiedCode ? 'Copied!' : `Copy code: ${group.id}`}</span>
+                  {copiedCode ? 'Copied!' : 'Copy invite link'}
                 </button>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
