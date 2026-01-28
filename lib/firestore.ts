@@ -90,11 +90,6 @@ export async function addMemberToGroup(groupId: string, member: GroupMember) {
   });
 }
 
-export async function removeMemberFromGroup(groupId: string, uid: string) {
-  await updateDoc(doc(firestore, 'groups', groupId, 'members', uid), {
-    status: 'removed'
-  });
-}
 
 export function subscribeToGroup(groupId: string, callback: (data: {
   group: Group | null;

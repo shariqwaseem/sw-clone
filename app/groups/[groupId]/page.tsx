@@ -11,7 +11,6 @@ import { Modal } from '@/components/Modal';
 import { computeGroupNetBalances, roundCurrency, simplifySettlements } from '@/lib/calculations';
 import {
   deleteGroupAndData,
-  removeMemberFromGroup,
   softDeleteExpense,
   softDeletePayment
 } from '@/lib/firestore';
@@ -44,8 +43,6 @@ export default function GroupDashboard() {
   const [showDeleteDataModal, setShowDeleteDataModal] = useState(false);
   const [deleteNameInput, setDeleteNameInput] = useState('');
   const [deletingGroup, setDeletingGroup] = useState(false);
-  const [memberToRemove, setMemberToRemove] = useState<{ uid: string; name: string } | null>(null);
-  const [removingMember, setRemovingMember] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<{ type: 'expense' | 'payment'; id: string } | null>(null);
 
   const balances = useMemo(() => {
@@ -100,24 +97,6 @@ export default function GroupDashboard() {
       setActionMessage((error as Error).message);
     } finally {
       setEntryToDelete(null);
-    }
-  };
-
-  const closeMemberRemoval = () => {
-    setMemberToRemove(null);
-    setRemovingMember(false);
-  };
-
-  const handleRemoveMember = async () => {
-    if (!groupId || !memberToRemove) return;
-    setRemovingMember(true);
-    try {
-      await removeMemberFromGroup(groupId, memberToRemove.uid);
-      setActionMessage('Member removed');
-      closeMemberRemoval();
-    } catch (error) {
-      setActionMessage((error as Error).message);
-      closeMemberRemoval();
     }
   };
 
@@ -218,25 +197,9 @@ export default function GroupDashboard() {
                       {member.displayName}
                       <span className="hidden sm:inline text-slate-400">{member.email ? ` · ${member.email}` : ''}</span>
                     </span>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 shrink-0">
-                      <span>
-                        {member.role}
-                        {member.status === 'removed' ? ' (removed)' : ''}
-                      </span>
-                      {member.status !== 'removed' && member.uid !== user?.uid && (
-                        <button
-                          onClick={() =>
-                            setMemberToRemove({
-                              uid: member.uid,
-                              name: member.displayName || member.email || member.uid
-                            })
-                          }
-                          className="text-rose-600 hover:text-rose-700 py-1 px-2 -mr-2"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
+                    <span className="text-xs text-slate-500 shrink-0">
+                      {member.role}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -428,28 +391,6 @@ export default function GroupDashboard() {
             onClick={confirmDeleteEntry}
           >
             Delete
-          </button>
-        </div>
-      </Modal>
-      <Modal
-        title="Remove member"
-        open={Boolean(memberToRemove)}
-        onClose={closeMemberRemoval}
-      >
-        <p className="text-sm text-slate-600">
-          Remove <span className="font-semibold">{memberToRemove?.name}</span> from this group? They will lose
-          access to expenses and balances.
-        </p>
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button className="btn-secondary" onClick={closeMemberRemoval}>
-            Cancel
-          </button>
-          <button
-            className="btn-danger disabled:opacity-50"
-            disabled={removingMember}
-            onClick={handleRemoveMember}
-          >
-            {removingMember ? 'Removing...' : 'Remove'}
           </button>
         </div>
       </Modal>

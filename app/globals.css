@@ -80,3 +80,27 @@ body {
     @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
   }
 }
+
+/* Safari mobile date input fix */
+input[type="date"].input-base {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 48px;
+}
+
+@supports (-webkit-touch-callout: none) {
+  input[type="date"].input-base {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 12px;
+  }
+}
+
+/* Prevent zoom on iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 2) {
+  input[type="date"].input-base {
+    font-size: 16px;
+  }
+}
