@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useGroups } from './useGroups';
 import { subscribeToGroup } from '@/lib/firestore';
 import { computeGroupNetBalances, simplifySettlements } from '@/lib/calculations';
-import type { Expense, GroupMember, Payment, Settlement } from '@/types';
+import type { Expense, GroupMember, Payment } from '@/types';
 
 export interface PersonBalance {
   uid: string;
@@ -21,12 +21,17 @@ interface GroupData {
 export function useAllGroupsBalances(uid?: string) {
   const { groups, loading: groupsLoading } = useGroups(uid);
   const [groupDataMap, setGroupDataMap] = useState<Record<string, GroupData>>({});
-  const [loading, setLoading] = useState(true);
+  const [loadedGroupIds, setLoadedGroupIds] = useState<Set<string>>(new Set());
 
   // Subscribe to each group's data
   useEffect(() => {
-    if (!uid || groups.length === 0) {
-      setLoading(groupsLoading);
+    if (!uid || groupsLoading) {
+      return;
+    }
+
+    if (groups.length === 0) {
+      setGroupDataMap({});
+      setLoadedGroupIds(new Set());
       return;
     }
 
@@ -42,13 +47,20 @@ export function useAllGroupsBalances(uid?: string) {
             payments: data.payments
           }
         }));
-        setLoading(false);
+        setLoadedGroupIds(prev => new Set([...prev, group.id]));
       });
       unsubscribers.push(unsub);
     }
 
-    return () => unsubscribers.forEach(unsub => unsub());
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+      setLoadedGroupIds(new Set());
+    };
   }, [uid, groups, groupsLoading]);
+
+  // Loading until all groups have reported data
+  const allGroupsLoaded = !groupsLoading && groups.length > 0 && groups.every(g => loadedGroupIds.has(g.id));
+  const loading = groupsLoading || (groups.length > 0 && !allGroupsLoaded);
 
   // Compute aggregated balances
   const balances: PersonBalance[] = [];
@@ -106,5 +118,5 @@ export function useAllGroupsBalances(uid?: string) {
     balances.sort((a, b) => b.amount - a.amount);
   }
 
-  return { balances, loading: loading || groupsLoading };
+  return { balances, loading };
 }

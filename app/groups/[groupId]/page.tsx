@@ -117,6 +117,120 @@ export default function GroupDashboard() {
     }
   };
 
+  const downloadTimelineCSV = () => {
+    if (!group || timelineItems.length === 0) return;
+
+    const escapeCSV = (value: string) => {
+      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    const getMemberName = (uid: string) =>
+      members.find(m => m.uid === uid)?.displayName ?? uid;
+
+    // Sort items by date ascending for CSV export
+    const sortedItems = [...timelineItems].sort(
+      (a, b) => new Date(a.entry.date).getTime() - new Date(b.entry.date).getTime()
+    );
+
+    // Headers: Date, Description, Category, Cost, Currency, then each member name
+    const memberNames = members.map(m => m.displayName);
+    const headers = ['Date', 'Description', 'Category', 'Cost', 'Currency', ...memberNames];
+
+    const rows = sortedItems.map(item => {
+      // Calculate net balance change for each member (paid - owed)
+      const memberBalances: Record<string, number> = {};
+      members.forEach(m => { memberBalances[m.uid] = 0; });
+
+      if (item.type === 'expense') {
+        const expense = item.entry;
+
+        // Add what each person paid
+        expense.payers.forEach((p: { uid: string; amount: number }) => {
+          memberBalances[p.uid] = (memberBalances[p.uid] ?? 0) + p.amount;
+        });
+
+        // Subtract what each person owes
+        expense.splits.forEach((s: { uid: string; amount: number }) => {
+          memberBalances[s.uid] = (memberBalances[s.uid] ?? 0) - s.amount;
+        });
+
+        const balanceValues = members.map(m => memberBalances[m.uid].toFixed(2));
+
+        return [
+          expense.date,
+          escapeCSV(expense.description),
+          'General',
+          expense.totalAmount.toFixed(2),
+          expense.currency,
+          ...balanceValues
+        ];
+      } else {
+        const payment = item.entry;
+
+        // Payment: fromUid paid toUid
+        // fromUid's balance increases (they are now owed less / owe less)
+        // toUid's balance decreases (they received money, so owe more relatively)
+        memberBalances[payment.fromUid] = payment.amount;
+        memberBalances[payment.toUid] = -payment.amount;
+
+        const fromName = getMemberName(payment.fromUid);
+        const toName = getMemberName(payment.toUid);
+        // Shorten names for payment description (first name + last initial)
+        const shortName = (name: string) => {
+          const parts = name.split(' ');
+          if (parts.length > 1) {
+            return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+          }
+          return name;
+        };
+
+        const balanceValues = members.map(m => memberBalances[m.uid].toFixed(2));
+
+        return [
+          payment.date,
+          escapeCSV(`${shortName(fromName)} paid ${shortName(toName)}.`),
+          'Payment',
+          payment.amount.toFixed(2),
+          group.currency,
+          ...balanceValues
+        ];
+      }
+    });
+
+    // Add empty row and total balance row
+    const emptyRow = Array(headers.length).fill('');
+    const totalBalances = members.map(m => (balances[m.uid] ?? 0).toFixed(2));
+    const totalRow = [
+      new Date().toISOString().split('T')[0],
+      'Total balance',
+      '',
+      '',
+      group.currency,
+      ...totalBalances
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      '',
+      ...rows.map(row => row.join(',')),
+      '',
+      totalRow.join(',')
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${group.name.replace(/[^a-z0-9]/gi, '_')}_timeline.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100">
       <TopNav />
@@ -235,9 +349,24 @@ export default function GroupDashboard() {
             {actionMessage && <p className="text-sm text-slate-500">{actionMessage}</p>}
 
             <section className="card">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Timeline</h2>
-                <span className="text-sm text-slate-500">{timelineItems.length} entries</span>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Timeline</h2>
+                  <span className="text-sm text-slate-500">{timelineItems.length} entries</span>
+                </div>
+                {timelineItems.length > 0 && (
+                  <button
+                    onClick={downloadTimelineCSV}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:border-slate-300"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    CSV
+                  </button>
+                )}
               </div>
               {timelineItems.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-500">No activity yet.</p>
